@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import seaborn as sns
 
 
@@ -11,8 +12,9 @@ def do_task_1(df):
     total_missing_values = df.isnull().sum()
     duplicated_rows = df.duplicated().sum()
     print("The database has {} rows and {} columns".format(rows, cols))
-    print("Missing values from cols: {}".format(total_missing_values))
-    print("Nr of duplicated rows: {}".format(duplicated_rows))
+    print("Missing values from cols:\n{}".format(total_missing_values))
+    print("Nr of duplicated rows:\n{}".format(duplicated_rows))
+    print(df)
     print(data_types)
 
 
@@ -43,10 +45,25 @@ def do_task_2(df):
     plt.show()
 
 
+def generate_histograms(df):
+    for i in df.columns:
+        if df[i].dtype == 'int64' or df[i].dtype == 'float64':
+            fig, ax = plt.subplots()
+            if df[i].dtype == 'int64':
+                sns.histplot(df[i], color='purple', discrete=True, edgecolor='black', ax=ax)
+                ax.locator_params(axis='x', integer=True)
+            else:
+                sns.histplot(df[i], color='purple', edgecolor='black', ax=ax)
+            plt.title(f'Histogram for {i}')
+            plt.xlabel(i)
+            plt.ylabel('Frequency')
+            plt.show()
+
 def main():
     df = pd.read_csv('./train.csv')
     do_task_1(df)
-    do_task_2(df)
+    #do_task_2(df)
+    generate_histograms(df)
     return 0
 
 
