@@ -1,8 +1,7 @@
 import pandas as pd
 
 
-def main():
-    df = pd.read_csv('./train.csv')
+def do_task_1(df):
     rows = len(df.axes[0])
     cols = len(df.axes[1])
     data_types = df.dtypes
@@ -12,10 +11,23 @@ def main():
     print("Missing values from cols: {}".format(total_missing_values))
     print("Nr of duplicated rows: {}".format(duplicated_rows))
     print(data_types)
-    pr_survived = df['Survived'].sum() / float(rows) * 100
-    pr_survived = round(pr_survived, 2)
-    pr_dead = 100 - pr_survived
-    print("Percentage of survived {}%\nPercentage of dead {}%".format(pr_survived, pr_dead))
+
+
+def do_task_2(df):
+    survived_percentage = df['Survived'].value_counts(normalize=True) * 100
+    survived_percentage = round(survived_percentage, 2)
+    print("Survived {}".format(survived_percentage))
+    people_per_room = df.loc[:, 'Pclass'].value_counts()
+    room_percentage = df['Pclass'].value_counts(normalize=True) * 100
+    room_percentage = round(room_percentage, 2)
+    room_percentage = room_percentage.sort_values()
+    print("Room {}".format(room_percentage))
+
+
+def main():
+    df = pd.read_csv('./train.csv')
+    #do_task_1(df)
+    do_task_2(df)
     return 0
 
 
