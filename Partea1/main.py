@@ -45,6 +45,7 @@ def do_task_2(df):
     plt.show()
 
 
+#pentru taskul 3
 def generate_histograms(df):
     for i in df.columns:
         if df[i].dtype == 'int64' or df[i].dtype == 'float64':
@@ -59,11 +60,32 @@ def generate_histograms(df):
             plt.ylabel('Frequency')
             plt.show()
 
+
+def do_task_4(df):
+    print("====TASK 4====")
+    total_rows = len(df.index)
+    incomplete_data = df.isnull().sum()
+    incomplete_data = incomplete_data[incomplete_data > 0]
+    for i in incomplete_data.index:
+        proportion = incomplete_data[i] / total_rows * 100
+        proportion = round(proportion, 2)
+        print("Column {} has {} missing values".format(i, incomplete_data[i]), end=' ')
+        print("({}% of the total data)".format(proportion))
+    incomplete_data = df[df.isnull().any(axis=1)]
+    total_survived = df['Survived'].value_counts()
+    incomplete_data_survived = incomplete_data['Survived'].value_counts()
+    survived_percentage = incomplete_data_survived / total_survived * 100
+    survived_percentage = round(survived_percentage, 2)
+    print("{}% of alive people have incomplete data".format(survived_percentage[0]))
+    print("{}% of dead people have incomplete data".format(survived_percentage[1]))
+
+
 def main():
     df = pd.read_csv('./train.csv')
     do_task_1(df)
-    #do_task_2(df)
+    do_task_2(df)
     generate_histograms(df)
+    do_task_4(df)
     return 0
 
 
