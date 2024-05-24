@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import argparse
+from scipy import stats
 
 # Your code goes here
 
@@ -24,14 +25,28 @@ def outliner_remover(iqr_list = None, iqr = None):
             iqr_filtered.append(i)
     return iqr_filtered
 
+def modified_z_score(column_data):
+    median = np.median(column_data)
+    median_absolute_deviation = np.median([np.abs(x - median) for x in column_data])
+    modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation for x in column_data]
+    return modified_z_scores
+
 def main(file_path, column_name):
     df = pd.read_csv(file_path)
     df[column_name] = pd.to_numeric(df[column_name], errors='coerce')
     df = df.dropna(subset=[column_name])
     column_data = df[column_name].tolist()
+    print(column_data)
+    
+    z_scores = modified_z_score(column_data)
+    z_scores_abs = np.abs(z_scores)
+    filtered_column_data = [x for x, z in zip(column_data, z_scores_abs) if z < 3.5]  # 3.5 is a commonly used threshold for the modified Z-score method
+    
+
     iqr = iqr_finder(column_data)
     iqr_new_list = outliner_remover(column_data, iqr)
-    print(iqr_new_list)
+    #print(iqr_new_list)
+    print(filtered_column_data)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
