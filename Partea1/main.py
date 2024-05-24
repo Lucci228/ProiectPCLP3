@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def do_task_1(df):
@@ -14,19 +17,35 @@ def do_task_1(df):
 
 
 def do_task_2(df):
+
     survived_percentage = df['Survived'].value_counts(normalize=True) * 100
     survived_percentage = round(survived_percentage, 2)
-    print("Survived {}".format(survived_percentage))
-    people_per_room = df.loc[:, 'Pclass'].value_counts()
+
     room_percentage = df['Pclass'].value_counts(normalize=True) * 100
     room_percentage = round(room_percentage, 2)
-    room_percentage = room_percentage.sort_values()
-    print("Room {}".format(room_percentage))
+
+    gender_percentage = df['Sex'].value_counts(normalize=True) * 100
+    gender_percentage = round(gender_percentage, 2)
+
+    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+    axs[0, 0].pie(survived_percentage, labels=['Survived', 'Dead'], autopct='%1.1f%%',
+                  colors=['skyblue', 'salmon'])
+    axs[0, 0].set_title('Survived vs Dead')
+
+    axs[0, 1].pie(room_percentage, labels=['First Class', 'Second Class', 'Third Class'], autopct='%1.1f%%', colors=['gold', 'purple', 'cyan'])
+    axs[0, 1].set_title('Room Class Dispersion')
+
+    axs[1, 0].pie(gender_percentage, labels=['Male', 'Female'], autopct='%1.1f%%',
+                  colors=['lightblue', 'lightcoral'])
+    axs[1, 0].set_title('Male vs Female')
+    axs[1, 1].axis('off')
+    plt.tight_layout()
+    plt.show()
 
 
 def main():
     df = pd.read_csv('./train.csv')
-    #do_task_1(df)
+    do_task_1(df)
     do_task_2(df)
     return 0
 
