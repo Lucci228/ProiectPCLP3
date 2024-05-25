@@ -80,12 +80,39 @@ def do_task_4(df):
     print("{}% of dead people have incomplete data".format(survived_percentage[1]))
 
 
+def get_index(value, brackets):
+    if value is None:
+        return None
+    for i in range(len(brackets)):
+        if brackets[i][0] <= value <= brackets[i][1]:
+            return i
+
+
+def do_task_5(df):
+    print("====TASK 5====")
+    age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
+    new_collumn = []
+    for i in df['Age']:
+        new_collumn.append(get_index(i, age_brackets))
+    df.insert(12, 'Age_Bracket', new_collumn, True)
+    age_category_counts = df['Age_Bracket'].value_counts().sort_index()
+    plt.figure(figsize=(10, 6))
+    age_category_counts.plot(kind='bar', color='skyblue')
+    plt.title('Number of Passengers in Each Age Category')
+    plt.xlabel('Age Category')
+    plt.ylabel('Number of Passengers')
+    plt.xticks(rotation=0)
+    plt.show()
+
+
 def main():
     df = pd.read_csv('./train.csv')
-    do_task_1(df)
-    do_task_2(df)
-    generate_histograms(df)
-    do_task_4(df)
+    #do_task_1(df)
+    #do_task_2(df)
+    #generate_histograms(df)
+    #do_task_4(df)
+    do_task_5(df)
+    print(df)
     return 0
 
 
