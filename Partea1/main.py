@@ -234,6 +234,14 @@ def investigate_alone_survival(df):
     plt.show()
 
 
+def do_task_10(df):
+    dataset = df.head(100)
+    plt.figure(figsize=(10, 10))
+    sns.catplot(data=dataset, x='Survived', y='Fare', hue='Pclass', kind='swarm', palette='tab10', size=3)
+    plt.show()
+
+
+
 def main():
     df = pd.read_csv('./train.csv')
     #do_task_1(df)
@@ -246,7 +254,8 @@ def main():
     #do_task_7(df)
     df = complete_df(df)
     do_task_9(df)
-    investigate_alone_survival(df)
+    #investigate_alone_survival(df)
+    do_task_10(df)
 
     return 0
 
