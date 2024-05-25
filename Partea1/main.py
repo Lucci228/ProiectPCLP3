@@ -100,7 +100,7 @@ def add_age_brackets(df):
 def do_task_5(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
     print("====TASK 5====")
-    df = add_age_brackets(df)
+
     age_category_counts = df['Age_Bracket'].value_counts().sort_index()
     plt.figure(figsize=(10, 6))
     fig, ax = plt.subplots()
@@ -149,14 +149,37 @@ def do_task_6(df):
     plt.tight_layout()
     plt.show()
 
+
+def do_task_7(df):
+    children_df = df[(df['Age'] < 18)]
+    children_survived_rate = len(children_df[(children_df['Survived'] == 1)].index) / len(children_df.index) * 100
+    children_survived_rate = round(children_survived_rate, 2)
+    adults_df = df[(df['Age'] >= 18)]
+    adults_survived_rate = len(adults_df[(adults_df['Survived'] == 1)].index) / len(adults_df.index) * 100
+    adults_survived_rate = round(adults_survived_rate, 2)
+    sns.barplot(x=['Children', 'Adults'], y=[children_survived_rate, adults_survived_rate], palette='Spectral',
+                hue=['Children', 'Adults'], legend=False)
+    plt.title('Survival Rate for Children and Adults')
+    plt.ylabel('Survival Rate (%)')
+    plt.show()
+
+def complete_df(df):
+    df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
+    df['Age'].fillna(df['Age'].mean(), inplace=True)
+    df['Cabin'].fillna('Unknown', inplace=True)
+    return df
+
+
 def main():
     df = pd.read_csv('./train.csv')
-    do_task_1(df)
-    do_task_2(df)
-    generate_histograms(df)
-    do_task_4(df)
-    do_task_5(df)
-    do_task_6(df)
+    #do_task_1(df)
+    #do_task_2(df)
+    #generate_histograms(df)
+    #do_task_4(df)
+    df = add_age_brackets(df)
+    #do_task_5(df)
+    #do_task_6(df)
+    do_task_7(df)
     print(df)
     return 0
 
