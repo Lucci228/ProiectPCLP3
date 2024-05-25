@@ -96,6 +96,13 @@ def add_age_brackets(df):
     df.insert(12, 'Age_Bracket', new_collumn, True)
     return df
 
+def replace_bracket(df):
+    age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
+    new_collumn = []
+    for i in df['Age']:
+        new_collumn.append(get_index(i, age_brackets))
+    df['Age_Bracket'] = new_collumn
+    return df
 
 def do_task_5(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
@@ -163,10 +170,17 @@ def do_task_7(df):
     plt.ylabel('Survival Rate (%)')
     plt.show()
 
+
 def complete_df(df):
-    df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
-    df['Age'].fillna(df['Age'].mean(), inplace=True)
-    df['Cabin'].fillna('Unknown', inplace=True)
+    total_rows = len(df.index)
+    incomplete_data = df.isnull().sum()
+    incomplete_data = incomplete_data[incomplete_data > 0]
+    for i in incomplete_data.index:
+        if df[i].dtype == 'int64' or df[i].dtype == 'float64':
+            df[i] = df[i].fillna(df[i].mean())
+        else:
+            df[i] = df[i].fillna(df[i].mode()[0])
+    df = replace_bracket(df)
     return df
 
 
@@ -179,7 +193,8 @@ def main():
     df = add_age_brackets(df)
     #do_task_5(df)
     #do_task_6(df)
-    do_task_7(df)
+    #do_task_7(df)
+    df = complete_df(df)
     print(df)
     return 0
 
