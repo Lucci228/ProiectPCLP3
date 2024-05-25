@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import itertools
 
 
 def do_task_1(df):
@@ -39,25 +40,32 @@ def do_task_2(df):
     axs[1, 0].pie(gender_percentage, labels=['Male', 'Female'], autopct='%1.1f%%',
                   colors=['lightblue', 'lightcoral'])
     axs[1, 0].set_title('Male vs Female')
-    axs[1, 1].axis('off')
+    fig.delaxes(axs[1, 1])
     plt.tight_layout()
     plt.show()
 
 
 #pentru taskul 3
 def generate_histograms(df):
-    for i in df.columns:
-        if df[i].dtype == 'int64' or df[i].dtype == 'float64':
-            fig, ax = plt.subplots()
-            if df[i].dtype == 'int64':
-                sns.histplot(df[i], color='purple', discrete=True, edgecolor='black', ax=ax)
-                ax.locator_params(axis='x', integer=True)
-            else:
-                sns.histplot(df[i], color='purple', edgecolor='black', ax=ax)
-            plt.title(f'Histogram for {i}')
-            plt.xlabel(i)
-            plt.ylabel('Frequency')
-            plt.show()
+    numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
+    n = len(numeric_cols)
+    n_rows = n // 2 + n % 2
+    fig, axs = plt.subplots(n_rows, 2, figsize=(10, 10))
+    axs = axs.ravel()  # Flatten the array of axes
+    idx = 0
+    for idx, col in enumerate(numeric_cols):
+        if df[col].dtype == 'int64':
+            sns.histplot(df[col], color='purple', discrete=True, edgecolor='black', ax=axs[idx])
+            axs[idx].locator_params(axis='x', integer=True)
+        else:
+            sns.histplot(df[col], color='purple', edgecolor='black', ax=axs[idx])
+        axs[idx].set_title(f'Histogram for {col}')
+        axs[idx].set_xlabel(col)
+        axs[idx].set_ylabel('Frequency')
+    for i in range(idx, len(axs)):
+        fig.delaxes(axs[i])
+    plt.tight_layout()
+    plt.show()
 
 
 def do_task_4(df):
@@ -94,6 +102,7 @@ def add_age_brackets(df):
         new_collumn.append(get_index(i, age_brackets))
     df.insert(12, 'Age_Bracket', new_collumn, True)
     return df
+
 
 def replace_bracket(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
@@ -221,8 +230,8 @@ def do_task_9(df):
 
 def investigate_alone_survival(df):
     df['Alone'] = (df['SibSp'] == 0) & (df['Parch'] == 0)
-    not_alone = df[df['Alone'] is False]
-    alone = df[df['Alone'] is True]
+    not_alone = df[df['Alone'] == False]
+    alone = df[df['Alone'] == True]
     not_alone_survived = not_alone['Survived']
     alone_survived = alone['Survived']
     plt.hist([not_alone_survived, alone_survived], bins=2, color=['g', 'r'], label=['Not Alone', 'Alone'], edgecolor='black')
@@ -244,19 +253,18 @@ def do_task_10(df):
 
 def main():
     df = pd.read_csv('./train.csv')
-    #do_task_1(df)
-    #do_task_2(df)
-    #generate_histograms(df)
-    #do_task_4(df)
+    do_task_1(df)
+    do_task_2(df)
+    generate_histograms(df)
+    do_task_4(df)
     df = add_age_brackets(df)
-    #do_task_5(df)
-    #do_task_6(df)
-    #do_task_7(df)
+    do_task_5(df)
+    do_task_6(df)
+    do_task_7(df)
     df = complete_df(df)
     do_task_9(df)
-    #investigate_alone_survival(df)
+    investigate_alone_survival(df)
     do_task_10(df)
-
     return 0
 
 
