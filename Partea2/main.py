@@ -1,12 +1,26 @@
 import pandas as pd
 import numpy as np
 import argparse
-from scipy import stats
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
+
+
+
+
+
+# Trebuie sa schimb pe ce se bazeaza modelul de predictie
+# deocamdata se bazeaza pe survived column, dar trebuie pe sex, age, fare, embarked
+# Probabil trebuie sa schimb urmatoarele:
+# 1. mai intai sa transform valorile coloanelor in numere
+# 2. sa nu se mai bazeze pe survived
+
+
+
+
+
 
 
 def prediction_survival(lst = None):
@@ -16,11 +30,6 @@ def prediction_survival(lst = None):
     # Înlăturați valorile lipsă
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
-    
-    # # Check if 'Survived' is a column in the DataFrame
-    # if 'Survived' not in df.columns:
-    #     print("'Survived' is not a column in the DataFrame")
-    #     return None
     
     # Convertiți coloanele categorice în valori numerice
     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
@@ -42,7 +51,7 @@ def prediction_survival(lst = None):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
     # Antrenare model
-    model = RandomForestClassifier()
+    model = RandomForestClassifier() # model inseamna pe ce se bazeaza survabilitatea
     
     # Convert all feature names to strings
     X_train.columns = X_train.columns.astype(str)
@@ -57,6 +66,7 @@ def prediction_survival(lst = None):
     
     return accuracy
 
+
 def iqr_finder(iqr_list = None):
     if iqr_list is None:
         return None
@@ -66,6 +76,7 @@ def iqr_finder(iqr_list = None):
     iqr = q3 - q1
     return iqr
 
+
 def outliner_remover(iqr_list = None, iqr = None):
     if iqr_list is None or iqr is None:
         return None
@@ -73,13 +84,15 @@ def outliner_remover(iqr_list = None, iqr = None):
         return iqr_list
     Lower_bound = np.percentile(iqr_list, 25) - 1.5 * iqr
     Upper_bound = np.percentile(iqr_list, 75) + 1.5 * iqr
-    return [i if Lower_bound <= i <= Upper_bound else np.nan for i in iqr_list]
+    return [i if Lower_bound <= i <= Upper_bound else 0 for i in iqr_list]
+
 
 def modified_z_score(column_data):
     median = np.median(column_data)
     median_absolute_deviation = np.median([np.abs(x - median) for x in column_data])
     modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation for x in column_data]
     return modified_z_scores
+
 
 def main(file_path, output_file_path):
     # Step 1: Read data from CSV
@@ -100,6 +113,7 @@ def main(file_path, output_file_path):
 
     # Step 5: Write the DataFrame back to a new CSV file
     df.to_csv(output_file_path, index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
