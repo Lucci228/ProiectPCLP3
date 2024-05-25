@@ -17,10 +17,13 @@ def prediction_survival(lst = None):
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
     
-    # Check if 'Survived' is a column in the DataFrame
-    if 'Survived' not in df.columns:
-        print("'Survived' is not a column in the DataFrame")
-        return None
+    # # Check if 'Survived' is a column in the DataFrame
+    # if 'Survived' not in df.columns:
+    #     print("'Survived' is not a column in the DataFrame")
+    #     return None
+    
+    # Convertiți coloanele categorice în valori numerice
+    df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
     
     # One-hot encoding for categorical variables
     categorical_cols = df.select_dtypes(include=['object']).columns
@@ -28,9 +31,6 @@ def prediction_survival(lst = None):
     df_encoded = pd.DataFrame(encoder.fit_transform(df[categorical_cols]).toarray())
     df = df.drop(categorical_cols, axis=1)
     df = pd.concat([df, df_encoded], axis=1)
-    
-    # Convertiți coloanele categorice în valori numerice
-    df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
     
     # Normalizați caracteristicile numerice
     scaler = StandardScaler()
@@ -43,6 +43,12 @@ def prediction_survival(lst = None):
     
     # Antrenare model
     model = RandomForestClassifier()
+    
+    # Convert all feature names to strings
+    X_train.columns = X_train.columns.astype(str)
+    X_test.columns = X_test.columns.astype(str)
+    
+    # Fit the model
     model.fit(X_train, y_train)
     
     # Evaluare model
@@ -63,13 +69,11 @@ def iqr_finder(iqr_list = None):
 def outliner_remover(iqr_list = None, iqr = None):
     if iqr_list is None or iqr is None:
         return None
-    iqr_filtered = []
+    if iqr == 0:
+        return iqr_list
     Lower_bound = np.percentile(iqr_list, 25) - 1.5 * iqr
     Upper_bound = np.percentile(iqr_list, 75) + 1.5 * iqr
-    for i in iqr_list:
-        if i >= Lower_bound and i <= Upper_bound:
-            iqr_filtered.append(i)
-    return iqr_filtered
+    return [i if Lower_bound <= i <= Upper_bound else np.nan for i in iqr_list]
 
 def modified_z_score(column_data):
     median = np.median(column_data)
@@ -77,28 +81,29 @@ def modified_z_score(column_data):
     modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation for x in column_data]
     return modified_z_scores
 
-def main(file_path, column_name):
+def main(file_path, output_file_path):
+    # Step 1: Read data from CSV
     df = pd.read_csv(file_path)
-    df[column_name] = pd.to_numeric(df[column_name], errors='coerce')
-    df = df.dropna(subset=[column_name])
-    column_data = df[column_name].tolist()
-    print(column_data)
-    
-    z_scores = modified_z_score(column_data)
-    z_scores_abs = np.abs(z_scores)
-    filtered_column_data = [x for x, z in zip(column_data, z_scores_abs) if z < 3]
 
-    iqr = iqr_finder(column_data)
-    iqr_new_list = outliner_remover(column_data, iqr)
-    #print(iqr_new_list)
-    #print(filtered_column_data)
-    print(prediction_survival(df))
+    # Step 2: Iterate over each column
+    for column_name in df.columns:
+        # Check if the column data is numeric and not one of the first two columns
+        if pd.api.types.is_numeric_dtype(df[column_name]) and column_name not in df.columns[:2]:
+            # Step 3: Remove outliers
+            column_data = df[column_name].tolist()
+            iqr = iqr_finder(column_data)
+            cleaned_data = outliner_remover(column_data, iqr)
 
-    prep_data, validated_data = prediction_survival(df)
+            # Step 4: Replace the original column with the cleaned data
+            if cleaned_data:
+                df[column_name] = cleaned_data
+
+    # Step 5: Write the DataFrame back to a new CSV file
+    df.to_csv(output_file_path, index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file_path', type=str, help='Path to the CSV file')
-    parser.add_argument('--column_name', type=str, help='Name of the column')
+    parser.add_argument('--input_file', type=str, help='Path to the CSV file')
+    parser.add_argument('--output_file', type=str, help='Path to the output CSV file')
     args = parser.parse_args()
-    main(args.file_path, args.column_name)
+    main(args.input_file, args.output_file)
