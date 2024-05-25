@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import seaborn as sns
-from copy import copy
 
 
 def do_task_1(df):
@@ -221,6 +219,19 @@ def do_task_9(df):
     plt.show()
 
 
+def investigate_alone_survival(df):
+    df['Alone'] = (df['SibSp'] == 0) & (df['Parch'] == 0)
+    not_alone = df[df['Alone'] == False]
+    alone = df[df['Alone'] == True]
+    not_alone_survived = not_alone['Survived']
+    alone_survived = alone['Survived']
+    plt.hist([not_alone_survived, alone_survived], bins=2, color=['g', 'r'], label=['Not Alone', 'Alone'], edgecolor='black')
+    plt.title('Survival Rates for Alone vs Not Alone Passengers')
+    plt.xlabel('Survival Status')
+    plt.ylabel('Number of Passengers')
+    plt.legend()
+    plt.xticks([0.25, 0.75], ['Did not survive', 'Survived'])
+    plt.show()
 
 
 def main():
@@ -235,7 +246,8 @@ def main():
     #do_task_7(df)
     df = complete_df(df)
     do_task_9(df)
-    print(df)
+    investigate_alone_survival(df)
+    
     return 0
 
 
