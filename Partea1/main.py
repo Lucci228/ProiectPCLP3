@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import seaborn as sns
+from copy import copy
 
 
 def do_task_1(df):
@@ -184,6 +185,44 @@ def complete_df(df):
     return df
 
 
+def do_task_9(df):
+    title_gender = {
+        'Mr': 'male',
+        'Miss': 'female',
+        'Mrs': 'female',
+        'Master': 'male',
+        'Dr': 'common',
+        'Rev': 'male',
+        'Mlle': 'female',
+        'Major': 'male',
+        'Col': 'male',
+        'Countess': 'female',
+        'Capt': 'male',
+        'Ms': 'female',
+        'Sir': 'male',
+        'Lady': 'female',
+        'Mme': 'female',
+        'Don': 'male',
+        'Jonkheer': 'male'
+    }
+    new_df = df
+    new_df['Title'] = new_df['Name'].str.extract(' ([A-Za-z]+)\\.', expand=False)
+    new_df['Expected_Sex'] = new_df['Title'].map(title_gender)
+    new_df['Match_gender'] = new_df.apply(
+        lambda row: True if row['Expected_Sex'] == 'common' else row['Sex'] == row['Expected_Sex'], axis=1)
+    matched_titles = new_df['Match_gender'].value_counts().iloc[0]
+    print("Task 8: There are {} missmatched titles".format(len(new_df) - matched_titles))
+    plt.figure(figsize=(10, 8))
+    sns.countplot(data=new_df, x='Title')
+    plt.title('Number of Passengers by Title')
+    plt.xlabel('Title')
+    plt.ylabel('Number of Passengers')
+    plt.xticks(rotation=90)
+    plt.show()
+
+
+
+
 def main():
     df = pd.read_csv('./train.csv')
     #do_task_1(df)
@@ -195,6 +234,7 @@ def main():
     #do_task_6(df)
     #do_task_7(df)
     df = complete_df(df)
+    do_task_9(df)
     print(df)
     return 0
 
