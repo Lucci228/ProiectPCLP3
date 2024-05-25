@@ -221,8 +221,8 @@ def do_task_9(df):
 
 def investigate_alone_survival(df):
     df['Alone'] = (df['SibSp'] == 0) & (df['Parch'] == 0)
-    not_alone = df[df['Alone'] == False]
-    alone = df[df['Alone'] == True]
+    not_alone = df[df['Alone'] is False]
+    alone = df[df['Alone'] is True]
     not_alone_survived = not_alone['Survived']
     alone_survived = alone['Survived']
     plt.hist([not_alone_survived, alone_survived], bins=2, color=['g', 'r'], label=['Not Alone', 'Alone'], edgecolor='black')
@@ -247,7 +247,7 @@ def main():
     df = complete_df(df)
     do_task_9(df)
     investigate_alone_survival(df)
-    
+
     return 0
 
 
