@@ -94,10 +94,13 @@ def add_age_brackets(df):
     for i in df['Age']:
         new_collumn.append(get_index(i, age_brackets))
     df.insert(12, 'Age_Bracket', new_collumn, True)
+    return df
 
 
 def do_task_5(df):
+    age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
     print("====TASK 5====")
+    df = add_age_brackets(df)
     age_category_counts = df['Age_Bracket'].value_counts().sort_index()
     plt.figure(figsize=(10, 6))
     fig, ax = plt.subplots()
@@ -119,14 +122,7 @@ def do_task_6(df):
     survived_age_brackets = male_survived['Age_Bracket'].value_counts().sort_index()
     percent_survived = survived_age_brackets / male_age_brackets * 100
     percent_survived = round(percent_survived, 2)
-    # plt.figure(figsize=(10, 6))
-    # sns.barplot(x=percent_survived.index, y=percent_survived.values, color='blue')
-    # plt.title('Survival Rate by Age Bracket')
-    # plt.xlabel('Age Bracket')
-    # plt.ylabel('Survival Rate (%)')
-    # plt.xticks(range(len(percent_survived.index)), ['0-20 years', '21-40 years', '41-60 years', '61+ years'],
-    #            rotation=0)
-    # plt.show()
+
     survival_rate = []
     for i in male_survived['Age']:
         index = get_index(i, age_brackets)
@@ -135,20 +131,30 @@ def do_task_6(df):
         else:
             survival_rate.append(None)
     male_survived.insert(13, 'Survival_Rate', survival_rate, True)
-    plt.figure(figsize=(10, 6))
-    sns.regplot(x=male_survived['Age'], y=male_survived['Survival_Rate'], lowess=True, color='blue')
-    plt.title('Scatter plot of Survival Rate by Age')
-    plt.xlabel('Age')
-    plt.ylabel('Survival Rate (%)')
-    plt.show()
 
+    fig, axs = plt.subplots(2, 1, figsize=(5, 10))
+
+    sns.barplot(x=percent_survived.index, y=percent_survived.values,
+                palette='viridis', hue=percent_survived.index, legend=False, ax=axs[0])
+    axs[0].set_title('Survival Rate by Age Bracket')
+    axs[0].set_xlabel('Age Bracket')
+    axs[0].set_ylabel('Survival Rate (%)')
+    axs[0].set_xticks(range(len(percent_survived.index)))
+    axs[0].set_xticklabels(['0-20 years', '21-40 years', '41-60 years', '61+ years'], rotation=0)
+
+    sns.lineplot(x=male_survived['Age'], y=male_survived['Survival_Rate'], color='blue', ax=axs[1])
+    axs[1].set_title('Scatter plot of Survival Rate by Age')
+    axs[1].set_ylabel('Survival Rate (%)')
+
+    plt.tight_layout()
+    plt.show()
 
 def main():
     df = pd.read_csv('./train.csv')
-    #do_task_1(df)
-    #do_task_2(df)
-    #generate_histograms(df)
-    #do_task_4(df)
+    do_task_1(df)
+    do_task_2(df)
+    generate_histograms(df)
+    do_task_4(df)
     do_task_5(df)
     do_task_6(df)
     print(df)
