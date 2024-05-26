@@ -83,8 +83,9 @@ def do_task_4(df):
     incomplete_data_survived = incomplete_data['Survived'].value_counts()
     survived_percentage = incomplete_data_survived / total_survived * 100
     survived_percentage = round(survived_percentage, 2)
-    print("{}% of alive people have incomplete data".format(survived_percentage[0]))
-    print("{}% of dead people have incomplete data".format(survived_percentage[1]))
+    print(survived_percentage)
+    print("{}% of dead people have incomplete data".format(survived_percentage[0]))
+    print("{}% of survive people have incomplete data".format(survived_percentage[1]))
 
 
 def get_index(value, brackets):
@@ -108,9 +109,10 @@ def replace_bracket(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
     new_collumn = []
     for i in df['Age']:
-        new_collumn.append(get_index(i, age_brackets))
+        new_collumn.append(get_index(int(i), age_brackets))
     df['Age_Bracket'] = new_collumn
     return df
+
 
 def do_task_5(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
@@ -181,6 +183,7 @@ def do_task_7(df):
 
 def complete_df(df):
     total_rows = len(df.index)
+    #iau o lista cu toate coloanele cu valori nule
     incomplete_data = df.isnull().sum()
     incomplete_data = incomplete_data[incomplete_data > 0]
     for i in incomplete_data.index:
@@ -248,7 +251,6 @@ def do_task_10(df):
     plt.figure(figsize=(10, 10))
     sns.catplot(data=dataset, x='Survived', y='Fare', hue='Pclass', kind='swarm', palette='tab10', size=3)
     plt.show()
-
 
 
 def main():
