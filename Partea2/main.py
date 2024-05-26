@@ -19,52 +19,94 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 
+# mai trebuie modificat functia de predictie
+# vezi cum transformi coloanele din df in cele din x_train
 
 
 
 
-def prediction_survival(lst = None):
+
+# def prediction_survival(lst = None):
+#     # Încărcați datele
+#     df = pd.DataFrame(lst)
+#
+#     # Înlăturați valorile lipsă
+#     numeric_cols = df.select_dtypes(include=[np.number]).columns
+#     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
+#
+#     # Convertiți coloanele categorice în valori numerice
+#     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
+#
+#     # One-hot encoding for categorical variables
+#     categorical_cols = df.select_dtypes(include=['object']).columns
+#     encoder = OneHotEncoder(handle_unknown='ignore')
+#     df_encoded = pd.DataFrame(encoder.fit_transform(df[categorical_cols]).toarray())
+#     df = df.drop(categorical_cols, axis=1)
+#     df = pd.concat([df, df_encoded], axis=1)
+#
+#     # Normalizați caracteristicile numerice
+#     scaler = StandardScaler()
+#     df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
+#
+#     # Împărțiți datele în două părți
+#     X = df.drop('Survived', axis=1)
+#     y = df['Survived']
+#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#
+#     # Antrenare model
+#     model = RandomForestClassifier() # model inseamna pe ce se bazeaza survabilitatea
+#
+#     # Convert all feature names to strings
+#     X_train.columns = X_train.columns.astype(str)
+#     X_test.columns = X_test.columns.astype(str)
+#
+#     # Fit the model
+#     model.fit(X_train, y_train)
+#
+#     # Evaluare model
+#     y_pred = model.predict(X_test)
+#     accuracy = accuracy_score(y_test, y_pred)
+#
+#     return accuracy
+
+def align_columns(new_data, train_data):
+    # Add missing columns to new_data and fill with zeros
+    for col in train_data.columns:
+        if col not in new_data.columns:
+            new_data[col] = 0
+
+    # Remove extra columns from new_data
+    for col in new_data.columns:
+        if col not in train_data.columns:
+            new_data = new_data.drop(col, axis=1)
+
+    return new_data
+
+
+def prediction_survival(df = None):
     # Încărcați datele
-    df = pd.DataFrame(lst)
-    
-    # Înlăturați valorile lipsă
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
-    
-    # Convertiți coloanele categorice în valori numerice
+    if df is None:
+        return None
+    # df = pd.DataFrame(lst)
+    # Convert 'Sex' and 'Embarked' columns into numerical values
+    df_copy = df.cpoy()
     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
-    
-    # One-hot encoding for categorical variables
-    categorical_cols = df.select_dtypes(include=['object']).columns
-    encoder = OneHotEncoder(handle_unknown='ignore')
-    df_encoded = pd.DataFrame(encoder.fit_transform(df[categorical_cols]).toarray())
-    df = df.drop(categorical_cols, axis=1)
-    df = pd.concat([df, df_encoded], axis=1)
-    
-    # Normalizați caracteristicile numerice
-    scaler = StandardScaler()
-    df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
-    
-    # Împărțiți datele în două părți
-    X = df.drop('Survived', axis=1)
-    y = df['Survived']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-    # Antrenare model
-    model = RandomForestClassifier() # model inseamna pe ce se bazeaza survabilitatea
-    
-    # Convert all feature names to strings
-    X_train.columns = X_train.columns.astype(str)
-    X_test.columns = X_test.columns.astype(str)
-    
-    # Fit the model
-    model.fit(X_train, y_train)
-    
-    # Evaluare model
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    
-    return accuracy
+
+    # Define your features and target
+    features = df[['Sex_male', 'Sex_female', 'Age', 'Fare', 'Embarked_C', 'Embarked_Q', 'Embarked_S']]
+    target = df['Survived']
+
+    # Split your data
+    x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
+    # Now, X_train and y_train contains the training data, and X_test and y_test contains the testing data.
+
+    # Create the model
+    model = RandomForestClassifier()
+
+    # Train the model
+    df_new = align_columns(df_copy, df)
+    model.fit(x_train, y_train)
+    pass
 
 
 def iqr_finder(iqr_list = None):
@@ -94,22 +136,28 @@ def modified_z_score(column_data):
     return modified_z_scores
 
 
+def remove_zero_age(df):
+    # Remove rows where 'Age' is 0
+    df = df[df['Age'] != 0]
+    return df
+
+
 def main(file_path, output_file_path):
     # Step 1: Read data from CSV
     df = pd.read_csv(file_path)
 
-    # Step 2: Iterate over each column
-    for column_name in df.columns:
-        # Check if the column data is numeric and not one of the first two columns
-        if pd.api.types.is_numeric_dtype(df[column_name]) and column_name not in df.columns[:2]:
-            # Step 3: Remove outliers
-            column_data = df[column_name].tolist()
-            iqr = iqr_finder(column_data)
-            cleaned_data = outliner_remover(column_data, iqr)
-
-            # Step 4: Replace the original column with the cleaned data
-            if cleaned_data:
-                df[column_name] = cleaned_data
+    # # Step 2: Iterate over each column
+    # for column_name in df.columns:
+    #     # Check if the column data is numeric and not one of the first two columns
+    #     if pd.api.types.is_numeric_dtype(df[column_name]) and column_name not in df.columns[:2]:
+    #         # Step 3: Remove outliers
+    #         column_data = df[column_name].tolist()
+    #         iqr = iqr_finder(column_data)
+    #         cleaned_data = outliner_remover(column_data, iqr)
+    #
+    #         # Step 4: Replace the original column with the cleaned data
+    #         if cleaned_data:
+    #             df[column_name] = cleaned_data
 
     # Step 5: Write the DataFrame back to a new CSV file
     df.to_csv(output_file_path, index=False)
