@@ -8,6 +8,13 @@ from sklearn.metrics import log_loss
 import matplotlib.pyplot as plt
 
 
+# mai verifica preciziile:
+# - doar cu iqr
+# - doar cu z-score
+# - fara nicio metoda de eliminare a outlierilor
+# - cu ambele metode de eliminare a outlierilor
+
+
 def plot_metrics(accuracy, log_loss):
     metrics = [accuracy, log_loss]
     metrics_names = ['Accuracy', 'Log Loss']
@@ -24,7 +31,12 @@ def prediction_survival(df=None):
     if df is None:
         return None
     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
-    features = df[['Sex_male', 'Sex_female', 'Age', 'Fare', 'Embarked_C', 'Embarked_Q', 'Embarked_S']]
+    features_columns = ['Sex_male', 'Sex_female', 'Age', 'Fare']
+    embarked_columns = ['Embarked_C', 'Embarked_Q', 'Embarked_S']
+    for column in embarked_columns:
+        if column in df.columns:
+            features_columns.append(column)
+    features = df[features_columns]
     target = df['Survived']
     x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
     model = RandomForestClassifier()
@@ -39,36 +51,44 @@ def prediction_survival(df=None):
     return accuracy, loss
 
 
-def iqr_finder(iqr_list = None):
-    if iqr_list is None:
-        return None
-    iqr_list.sort()
-    q1 = np.percentile(iqr_list, 25)
-    q3 = np.percentile(iqr_list, 75)
-    iqr = q3 - q1
-    return iqr
+def outlier_remover_iqr(df):
+    possible_outlier_columns = ['Age', 'Fare', 'SibSp', 'Parch']
+    for column in possible_outlier_columns:
+        if pd.api.types.is_numeric_dtype(df[column]):
+            q1 = df[column].quantile(0.25)
+            q3 = df[column].quantile(0.75)
+            iqr = q3 - q1
+            lower_bound = q1 - 1.5 * iqr
+            upper_bound = q3 + 1.5 * iqr
+            df = df[(df[column] >= lower_bound) & (df[column] <= upper_bound)]
+    return df
 
 
-def outliner_remover(iqr_list = None, iqr = None):
-    if iqr_list is None or iqr is None:
-        return None
-    if iqr == 0:
-        return iqr_list
-    lower_bound = np.percentile(iqr_list, 25) - 1.5 * iqr
-    upper_bound = np.percentile(iqr_list, 75) + 1.5 * iqr
-    return [i if lower_bound <= i <= upper_bound else 0 for i in iqr_list]
+def calculate_z_scores(column):
+    return (column - column.mean()) / column.std()
 
 
-def modified_z_score(column_data):
-    median = np.median(column_data)
-    median_absolute_deviation = np.median([np.abs(x - median) for x in column_data])
-    modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation for x in column_data]
-    return modified_z_scores
+def outlier_remover_z_score(df):
+    df = df.dropna()
+    possible_outlier_columns = ['Age', 'Fare', 'SibSp', 'Parch']
+    for column in possible_outlier_columns:
+        if pd.api.types.is_numeric_dtype(df[column]):
+            z_scores = calculate_z_scores(df[column])
+            median = np.median(z_scores)
+            median_absolute_deviation = np.median([np.abs(x - median) for x in z_scores])
+            if median_absolute_deviation != 0:
+                modified_z_scores = [0.6745 * (x - median) / median_absolute_deviation if not np.isnan(x) else 0 for x in z_scores]
+            else:
+                modified_z_scores = [0 for x in z_scores]
+            df.loc[:, column] = np.array(modified_z_scores, dtype=df[column].dtype)
+    return df
 
 
 def main(file_path, output_file_path):
     df = pd.read_csv(file_path)
-    prediction_survival(df)
+    df_new = outlier_remover_iqr(df)
+    df_new2 = outlier_remover_z_score(df_new)
+    prediction_survival(df_new2)
     df.to_csv(output_file_path, index=False)
 
 
