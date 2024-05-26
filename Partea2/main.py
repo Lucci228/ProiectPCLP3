@@ -8,9 +8,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder
 
 
-
-
-
 # Trebuie sa schimb pe ce se bazeaza modelul de predictie
 # deocamdata se bazeaza pe survived column, dar trebuie pe sex, age, fare, embarked
 # Probabil trebuie sa schimb urmatoarele:
@@ -18,12 +15,8 @@ from sklearn.preprocessing import OneHotEncoder
 # 2. sa nu se mai bazeze pe survived
 
 
-
 # mai trebuie modificat functia de predictie
 # vezi cum transformi coloanele din df in cele din x_train
-
-
-
 
 
 # def prediction_survival(lst = None):
@@ -83,13 +76,13 @@ def align_columns(new_data, train_data):
     return new_data
 
 
-def prediction_survival(df = None):
+def prediction_survival(df=None):
     # Încărcați datele
     if df is None:
         return None
     # df = pd.DataFrame(lst)
     # Convert 'Sex' and 'Embarked' columns into numerical values
-    df_copy = df.cpoy()
+    df_copy = df.copy()
     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
 
     # Define your features and target
@@ -100,12 +93,19 @@ def prediction_survival(df = None):
     x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
     # Now, X_train and y_train contains the training data, and X_test and y_test contains the testing data.
 
-    # Create the model
+    train_data = pd.concat([x_train, x_test], axis=1)
+    # train_data = train_data.drop('Survived', axis=1)
+
     model = RandomForestClassifier()
 
-    # Train the model
-    df_new = align_columns(df_copy, df)
     model.fit(x_train, y_train)
+
+    y_pred = model.predict(x_test)
+
+    # y_test is the actual values of 'Survived' for the test data
+    accuracy = accuracy_score(y_test, y_pred)
+
+    print(f"Accuracy: {accuracy * 100}%")
     pass
 
 
@@ -159,6 +159,7 @@ def main(file_path, output_file_path):
     #         if cleaned_data:
     #             df[column_name] = cleaned_data
 
+    prediction_survival(df)
     # Step 5: Write the DataFrame back to a new CSV file
     df.to_csv(output_file_path, index=False)
 
