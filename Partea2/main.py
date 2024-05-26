@@ -1,112 +1,42 @@
 import pandas as pd
 import numpy as np
 import argparse
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import log_loss
+import matplotlib.pyplot as plt
 
 
-# Trebuie sa schimb pe ce se bazeaza modelul de predictie
-# deocamdata se bazeaza pe survived column, dar trebuie pe sex, age, fare, embarked
-# Probabil trebuie sa schimb urmatoarele:
-# 1. mai intai sa transform valorile coloanelor in numere
-# 2. sa nu se mai bazeze pe survived
-
-
-# mai trebuie modificat functia de predictie
-# vezi cum transformi coloanele din df in cele din x_train
-
-
-# def prediction_survival(lst = None):
-#     # Încărcați datele
-#     df = pd.DataFrame(lst)
-#
-#     # Înlăturați valorile lipsă
-#     numeric_cols = df.select_dtypes(include=[np.number]).columns
-#     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
-#
-#     # Convertiți coloanele categorice în valori numerice
-#     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
-#
-#     # One-hot encoding for categorical variables
-#     categorical_cols = df.select_dtypes(include=['object']).columns
-#     encoder = OneHotEncoder(handle_unknown='ignore')
-#     df_encoded = pd.DataFrame(encoder.fit_transform(df[categorical_cols]).toarray())
-#     df = df.drop(categorical_cols, axis=1)
-#     df = pd.concat([df, df_encoded], axis=1)
-#
-#     # Normalizați caracteristicile numerice
-#     scaler = StandardScaler()
-#     df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
-#
-#     # Împărțiți datele în două părți
-#     X = df.drop('Survived', axis=1)
-#     y = df['Survived']
-#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-#
-#     # Antrenare model
-#     model = RandomForestClassifier() # model inseamna pe ce se bazeaza survabilitatea
-#
-#     # Convert all feature names to strings
-#     X_train.columns = X_train.columns.astype(str)
-#     X_test.columns = X_test.columns.astype(str)
-#
-#     # Fit the model
-#     model.fit(X_train, y_train)
-#
-#     # Evaluare model
-#     y_pred = model.predict(X_test)
-#     accuracy = accuracy_score(y_test, y_pred)
-#
-#     return accuracy
-
-def align_columns(new_data, train_data):
-    # Add missing columns to new_data and fill with zeros
-    for col in train_data.columns:
-        if col not in new_data.columns:
-            new_data[col] = 0
-
-    # Remove extra columns from new_data
-    for col in new_data.columns:
-        if col not in train_data.columns:
-            new_data = new_data.drop(col, axis=1)
-
-    return new_data
+def plot_metrics(accuracy, log_loss):
+    metrics = [accuracy, log_loss]
+    metrics_names = ['Accuracy', 'Log Loss']
+    plt.figure(figsize=(10, 5))
+    plt.bar(metrics_names, metrics, color=['blue', 'red'])
+    plt.ylabel('Score')
+    plt.title('Model Metrics')
+    for i in range(len(metrics)):
+        plt.text(i, metrics[i], round(metrics[i], 2), ha = 'center')
+    plt.show()
 
 
 def prediction_survival(df=None):
-    # Încărcați datele
     if df is None:
         return None
-    # df = pd.DataFrame(lst)
-    # Convert 'Sex' and 'Embarked' columns into numerical values
-    df_copy = df.copy()
     df = pd.get_dummies(df, columns=['Sex', 'Embarked'])
-
-    # Define your features and target
     features = df[['Sex_male', 'Sex_female', 'Age', 'Fare', 'Embarked_C', 'Embarked_Q', 'Embarked_S']]
     target = df['Survived']
-
-    # Split your data
     x_train, x_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
-    # Now, X_train and y_train contains the training data, and X_test and y_test contains the testing data.
-
-    train_data = pd.concat([x_train, x_test], axis=1)
-    # train_data = train_data.drop('Survived', axis=1)
-
     model = RandomForestClassifier()
-
     model.fit(x_train, y_train)
-
     y_pred = model.predict(x_test)
-
-    # y_test is the actual values of 'Survived' for the test data
     accuracy = accuracy_score(y_test, y_pred)
-
     print(f"Accuracy: {accuracy * 100}%")
-    pass
+    y_pred_proba = model.predict_proba(x_test)
+    loss = log_loss(y_test, y_pred_proba)
+    print(f"Log Loss: {loss}")
+    plot_metrics(accuracy, loss)
+    return accuracy, loss
 
 
 def iqr_finder(iqr_list = None):
@@ -124,9 +54,9 @@ def outliner_remover(iqr_list = None, iqr = None):
         return None
     if iqr == 0:
         return iqr_list
-    Lower_bound = np.percentile(iqr_list, 25) - 1.5 * iqr
-    Upper_bound = np.percentile(iqr_list, 75) + 1.5 * iqr
-    return [i if Lower_bound <= i <= Upper_bound else 0 for i in iqr_list]
+    lower_bound = np.percentile(iqr_list, 25) - 1.5 * iqr
+    upper_bound = np.percentile(iqr_list, 75) + 1.5 * iqr
+    return [i if lower_bound <= i <= upper_bound else 0 for i in iqr_list]
 
 
 def modified_z_score(column_data):
@@ -136,31 +66,9 @@ def modified_z_score(column_data):
     return modified_z_scores
 
 
-def remove_zero_age(df):
-    # Remove rows where 'Age' is 0
-    df = df[df['Age'] != 0]
-    return df
-
-
 def main(file_path, output_file_path):
-    # Step 1: Read data from CSV
     df = pd.read_csv(file_path)
-
-    # # Step 2: Iterate over each column
-    # for column_name in df.columns:
-    #     # Check if the column data is numeric and not one of the first two columns
-    #     if pd.api.types.is_numeric_dtype(df[column_name]) and column_name not in df.columns[:2]:
-    #         # Step 3: Remove outliers
-    #         column_data = df[column_name].tolist()
-    #         iqr = iqr_finder(column_data)
-    #         cleaned_data = outliner_remover(column_data, iqr)
-    #
-    #         # Step 4: Replace the original column with the cleaned data
-    #         if cleaned_data:
-    #             df[column_name] = cleaned_data
-
     prediction_survival(df)
-    # Step 5: Write the DataFrame back to a new CSV file
     df.to_csv(output_file_path, index=False)
 
 
