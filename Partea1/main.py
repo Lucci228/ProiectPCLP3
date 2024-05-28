@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import itertools
 
 
 def do_task_1(df):
@@ -11,11 +10,13 @@ def do_task_1(df):
     data_types = df.dtypes
     total_missing_values = df.isnull().sum()
     duplicated_rows = df.duplicated().sum()
+    print("====TASK 1====")
     print("The database has {} rows and {} columns".format(rows, cols))
-    print("Missing values from cols:\n{}".format(total_missing_values))
-    print("Nr of duplicated rows:\n{}".format(duplicated_rows))
+    print("\nMissing values from cols:\n{}".format(total_missing_values))
+    print("\nNr of duplicated rows:\n{}\n".format(duplicated_rows))
     print(df)
     print(data_types)
+    print("====END TASK 1====")
 
 
 def do_task_2(df):
@@ -29,24 +30,22 @@ def do_task_2(df):
     gender_percentage = df['Sex'].value_counts(normalize=True) * 100
     gender_percentage = round(gender_percentage, 2)
 
-    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
-    axs[0, 0].pie(survived_percentage, labels=['Survived', 'Dead'], autopct='%1.1f%%',
+    fig, axs = plt.subplots(3, 1, figsize=(5, 8))
+    axs[0].pie(survived_percentage, labels=['Survived', 'Dead'], autopct='%1.1f%%',
                   colors=['skyblue', 'salmon'])
-    axs[0, 0].set_title('Survived vs Dead')
+    axs[0].set_title('Survived vs Dead')
 
-    axs[0, 1].pie(room_percentage, labels=['First Class', 'Second Class', 'Third Class'], autopct='%1.1f%%', colors=['gold', 'purple', 'cyan'])
-    axs[0, 1].set_title('Room Class Dispersion')
+    axs[1].pie(room_percentage, labels=['First Class', 'Second Class', 'Third Class'], autopct='%1.1f%%', colors=['gold', 'purple', 'cyan'])
+    axs[1].set_title('Room Class Dispersion')
 
-    axs[1, 0].pie(gender_percentage, labels=['Male', 'Female'], autopct='%1.1f%%',
+    axs[2].pie(gender_percentage, labels=['Male', 'Female'], autopct='%1.1f%%',
                   colors=['lightblue', 'lightcoral'])
-    axs[1, 0].set_title('Male vs Female')
-    fig.delaxes(axs[1, 1])
+    axs[2].set_title('Male vs Female')
     plt.tight_layout()
     plt.show()
 
 
-#pentru taskul 3
-def generate_histograms(df):
+def do_task_3(df):
     numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
     n = len(numeric_cols)
     n_rows = n // 2 + n % 2
@@ -83,9 +82,9 @@ def do_task_4(df):
     incomplete_data_survived = incomplete_data['Survived'].value_counts()
     survived_percentage = incomplete_data_survived / total_survived * 100
     survived_percentage = round(survived_percentage, 2)
-    print(survived_percentage)
     print("{}% of dead people have incomplete data".format(survived_percentage[0]))
     print("{}% of survive people have incomplete data".format(survived_percentage[1]))
+    print("====END TASK 4====")
 
 
 def get_index(value, brackets):
@@ -116,8 +115,6 @@ def replace_bracket(df):
 
 def do_task_5(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
-    print("====TASK 5====")
-
     age_category_counts = df['Age_Bracket'].value_counts().sort_index()
     plt.figure(figsize=(10, 6))
     fig, ax = plt.subplots()
@@ -169,6 +166,10 @@ def do_task_6(df):
 
 def do_task_7(df):
     children_df = df[(df['Age'] < 18)]
+    percent_of_children = len(children_df.index) / len(df.index) * 100
+    percent_of_children = round(percent_of_children, 2)
+    print("====TASK 7====")
+    print("{}% of passengers are children".format(percent_of_children))
     children_survived_rate = len(children_df[(children_df['Survived'] == 1)].index) / len(children_df.index) * 100
     children_survived_rate = round(children_survived_rate, 2)
     adults_df = df[(df['Age'] >= 18)]
@@ -221,7 +222,7 @@ def do_task_9(df):
     new_df['Match_gender'] = new_df.apply(
         lambda row: True if row['Expected_Sex'] == 'common' else row['Sex'] == row['Expected_Sex'], axis=1)
     matched_titles = new_df['Match_gender'].value_counts().iloc[0]
-    print("Task 8: There are {} missmatched titles".format(len(new_df) - matched_titles))
+    print("Task 9: There are {} missmatched titles".format(len(new_df) - matched_titles))
     plt.figure(figsize=(10, 8))
     sns.countplot(data=new_df, x='Title')
     plt.title('Number of Passengers by Title')
@@ -257,7 +258,7 @@ def main():
     df = pd.read_csv('./train.csv')
     do_task_1(df)
     do_task_2(df)
-    generate_histograms(df)
+    do_task_3(df)
     do_task_4(df)
     df = add_age_brackets(df)
     df.to_csv('data1.out', sep=',', index=False, encoding='utf-8')
