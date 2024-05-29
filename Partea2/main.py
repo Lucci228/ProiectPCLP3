@@ -5,23 +5,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import log_loss
+from sklearn.metrics import precision_score
 import matplotlib.pyplot as plt
 
 
-# mai verifica preciziile:
-# - doar cu iqr
-# - doar cu z-score
-# - fara nicio metoda de eliminare a outlierilor
-# - cu ambele metode de eliminare a outlierilor
-
-
-def plot_metrics(accuracy, log_loss):
-    metrics = [accuracy, log_loss]
-    metrics_names = ['Accuracy', 'Log Loss']
+def plot_metrics(accuracy, log_loss, precision):
+    metrics = [accuracy, log_loss, precision]
+    metrics_names = ['Accuracy', 'Log Loss', 'Precision']
     plt.figure(figsize=(10, 5))
-    plt.bar(metrics_names, metrics, color=['blue', 'red'])
+    plt.bar(metrics_names, metrics, color=['steelblue', 'lightblue', 'powderblue'])
     plt.ylabel('Score')
-    plt.title('Model Metrics')
+    plt.title('Accuracy, Log Loss & Precision')
     for i in range(len(metrics)):
         plt.text(i, metrics[i], round(metrics[i], 2), ha = 'center')
     plt.show()
@@ -47,8 +41,10 @@ def prediction_survival(df=None):
     y_pred_proba = model.predict_proba(x_test)
     loss = log_loss(y_test, y_pred_proba)
     print(f"Log Loss: {loss}")
-    plot_metrics(accuracy, loss)
-    return accuracy, loss
+    precision = precision_score(y_test, y_pred)
+    print(f'Precision: {precision}')
+    plot_metrics(accuracy, loss, precision)
+    pass
 
 
 def outlier_remover_iqr(df):
@@ -86,10 +82,14 @@ def outlier_remover_z_score(df):
 
 def main(file_path, output_file_path):
     df = pd.read_csv(file_path)
-    df_new = outlier_remover_iqr(df)
-    df_new2 = outlier_remover_z_score(df_new)
-    prediction_survival(df_new2)
-    df.to_csv(output_file_path, index=False)
+    df_iqr = outlier_remover_iqr(df)
+    df_zscore = outlier_remover_z_score(df)
+    df_iqr_zscore = outlier_remover_z_score(df_iqr)
+    prediction_survival(df)
+    prediction_survival(df_iqr)
+    prediction_survival(df_zscore)
+    prediction_survival(df_iqr_zscore)
+    df_iqr_zscore.to_csv(output_file_path, index=False)
 
 
 if __name__ == "__main__":
