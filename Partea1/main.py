@@ -8,11 +8,13 @@ def do_task_1(df):
     rows = len(df.axes[0])
     cols = len(df.axes[1])
     data_types = df.dtypes
-    total_missing_values = df.isnull().sum()
+    missing_values_cols = df.isnull().sum()
     duplicated_rows = df.duplicated().sum()
+    total_missing_values = missing_values_cols.sum()
     print("====TASK 1====")
     print("The database has {} rows and {} columns".format(rows, cols))
-    print("\nMissing values from cols:\n{}".format(total_missing_values))
+    print("\nTotal missing values: {}".format(total_missing_values))
+    print("\nMissing values from cols:\n{}".format(missing_values_cols))
     print("\nNr of duplicated rows:\n{}\n".format(duplicated_rows))
     print(df)
     print(data_types)
@@ -52,19 +54,31 @@ def do_task_3(df):
     fig, axs = plt.subplots(n_rows, 2, figsize=(10, 10))
     axs = axs.ravel()  # Flatten the array of axes
     idx = 0
-    for idx, col in enumerate(numeric_cols):
+    for col in numeric_cols:
         if df[col].dtype == 'int64':
-            sns.histplot(df[col], color='purple', discrete=True, edgecolor='black', ax=axs[idx])
+            sns.histplot(df[col], color='blue', discrete=True, edgecolor='black', ax=axs[idx])
             axs[idx].locator_params(axis='x', integer=True)
         else:
-            sns.histplot(df[col], color='purple', edgecolor='black', ax=axs[idx])
+            sns.histplot(df[col], color='blue', edgecolor='black', ax=axs[idx])
         axs[idx].set_title(f'Histogram for {col}')
         axs[idx].set_xlabel(col)
         axs[idx].set_ylabel('Frequency')
+        idx += 1
     for i in range(idx, len(axs)):
         fig.delaxes(axs[i])
     plt.tight_layout()
     plt.show()
+    sns.histplot(df["PassengerId"], color='blue', edgecolor='black')
+    plt.title('Histogram for PassengerId')
+    plt.xlabel('PassengerId')
+    plt.ylabel('Frequency')
+    plt.show()
+    sns.histplot(df["Fare"], color='lightblue', edgecolor='black')
+    plt.title('Histogram for Fare')
+    plt.xlabel('Fare')
+    plt.ylabel('Frequency')
+    plt.show()
+
 
 
 def do_task_4(df):
