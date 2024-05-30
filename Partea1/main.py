@@ -159,22 +159,14 @@ def do_task_6(df):
     survived_age_brackets = male_survived['Age_Bracket'].value_counts().sort_index()
     percent_survived = survived_age_brackets / male_age_brackets * 100
     percent_survived = round(percent_survived, 2)
-    survival_rate = []
-    for i in male_survived['Age']:
-        index = get_index(i, age_brackets)
-        if index is not None:
-            survival_rate.append(percent_survived[index])
-        else:
-            survival_rate.append(None)
-    male_survived.insert(13, 'Survival_Rate', survival_rate, True)
-    fig, axs = plt.subplots(1, 1, figsize=(5, 10))
+    fig, axs = plt.subplots(1, 1, figsize=(10, 10))
     sns.barplot(x=percent_survived.index, y=percent_survived.values,
-                palette='viridis', hue=percent_survived.index, legend=False, ax=axs[0])
-    axs[0].set_title('Survival Rate by Age Bracket')
-    axs[0].set_xlabel('Age Bracket')
-    axs[0].set_ylabel('Survival Rate (%)')
-    axs[0].set_xticks(range(len(percent_survived.index)))
-    axs[0].set_xticklabels(['0-20 years', '21-40 years', '41-60 years', '61+ years'], rotation=0)
+                palette='viridis', hue=percent_survived.index, legend=False, ax=axs)
+    axs.set_title('Survival Rate by Age Bracket')
+    axs.set_xlabel('Age Bracket')
+    axs.set_ylabel('Survival Rate (%)')
+    axs.set_xticks(range(len(percent_survived.index)))
+    axs.set_xticklabels(['0-20 years', '21-40 years', '41-60 years', '61+ years'], rotation=0)
     plt.tight_layout()
     plt.show()
 
