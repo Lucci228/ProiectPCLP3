@@ -80,27 +80,6 @@ def do_task_3(df):
     plt.show()
 
 
-
-def do_task_4(df):
-    print("====TASK 4====")
-    total_rows = len(df.index)
-    incomplete_data = df.isnull().sum()
-    incomplete_data = incomplete_data[incomplete_data > 0]
-    for i in incomplete_data.index:
-        proportion = incomplete_data[i] / total_rows * 100
-        proportion = round(proportion, 2)
-        print("Column {} has {} missing values".format(i, incomplete_data[i]), end=' ')
-        print("({}% of the total data)".format(proportion))
-    incomplete_data = df[df.isnull().any(axis=1)]
-    total_survived = df['Survived'].value_counts()
-    incomplete_data_survived = incomplete_data['Survived'].value_counts()
-    survived_percentage = incomplete_data_survived / total_survived * 100
-    survived_percentage = round(survived_percentage, 2)
-    print("{}% of dead people have incomplete data".format(survived_percentage[0]))
-    print("{}% of survive people have incomplete data".format(survived_percentage[1]))
-    print("====END TASK 4====")
-
-
 def get_index(value, brackets):
     if value is None:
         return None
@@ -116,6 +95,37 @@ def add_age_brackets(df):
         new_collumn.append(get_index(i, age_brackets))
     df.insert(12, 'Age_Bracket', new_collumn, True)
     return df
+
+
+def do_task_4(df):
+    print("====TASK 4====")
+    total_rows = len(df.index)
+    incomplete_data = df.isnull().sum()
+    incomplete_data = incomplete_data[incomplete_data > 0]
+    for i in incomplete_data.index:
+        proportion = incomplete_data[i] / total_rows * 100
+        proportion = round(proportion, 2)
+        print("Column {} has {} missing values".format(i, incomplete_data[i]), end=' ')
+        print("({}% of the total data)".format(proportion))
+    #df.isnull().anu(axis=1) returneaza o lista cu true in dreptul liniilor cu null/NaN values
+    incomplete_data = df[df.isnull().any(axis=1)]
+    print(incomplete_data)
+    total_survived = df['Survived'].value_counts()
+    incomplete_data_survived = incomplete_data['Survived'].value_counts()
+    incomplete_percentage = incomplete_data_survived / total_survived * 100
+    incomplete_percentage = round(incomplete_percentage, 2)
+    complete_data = 100 - incomplete_percentage
+    print("{}% of dead people have incomplete data".format(incomplete_percentage[0]))
+    print("{}% of survive people have incomplete data".format(incomplete_percentage[1]))
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    axs[0].pie([incomplete_percentage[0], complete_data[0]], labels=['Incomplete', 'Complete'], autopct='%1.1f%%',
+               colors=['red', 'green'])
+    axs[0].set_title('Dead')
+    axs[1].pie([incomplete_percentage[1], complete_data[1]], labels=['Incomplete', 'Complete'], autopct='%1.1f%%',
+               colors=['red', 'green'])
+    axs[1].set_title('Alive')
+    plt.show()
+    print("====END TASK 4====")
 
 
 def replace_bracket(df):
