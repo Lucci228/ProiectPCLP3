@@ -90,10 +90,10 @@ def get_index(value, brackets):
 
 def add_age_brackets(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
-    new_collumn = []
+    new_col = []
     for i in df['Age']:
-        new_collumn.append(get_index(i, age_brackets))
-    df.insert(12, 'Age_Bracket', new_collumn, True)
+        new_col.append(get_index(i, age_brackets))
+    df.insert(12, 'Age_Bracket', new_col, True)
     return df
 
 
@@ -107,8 +107,7 @@ def do_task_4(df):
         proportion = round(proportion, 2)
         print("Column {} has {} missing values".format(i, incomplete_data[i]), end=' ')
         print("({}% of the total data)".format(proportion))
-    #df.isnull().anu(axis=1) returneaza o lista cu true in dreptul liniilor cu null/NaN values
-    incomplete_data = df[df.isnull().any(axis=1)]
+    incomplete_data = df[df.isnull().any(axis=1)] #df.isnull().anu(axis=1) returneaza o lista cu true in dreptul liniilor cu null/NaN values
     total_survived = df['Survived'].value_counts()
     incomplete_data_survived = incomplete_data['Survived'].value_counts()
     incomplete_percentage = incomplete_data_survived / total_survived * 100
@@ -129,10 +128,10 @@ def do_task_4(df):
 
 def replace_bracket(df):
     age_brackets = [(0, 20), (21, 40), (41, 60), (60, df['Age'].max())]
-    new_collumn = []
+    new_col = []
     for i in df['Age']:
-        new_collumn.append(get_index(int(i), age_brackets))
-    df['Age_Bracket'] = new_collumn
+        new_col.append(get_index(int(i), age_brackets))
+    df['Age_Bracket'] = new_col
     return df
 
 
@@ -172,10 +171,10 @@ def do_task_6(df):
 
 def do_task_7(df):
     children_df = df[(df['Age'] < 18)]
-    percent_of_children = len(children_df.index) / len(df.index) * 100
-    percent_of_children = round(percent_of_children, 2)
+    percent_kids = len(children_df.index) / len(df.index) * 100
+    percent_kids = round(percent_kids, 2)
     print("====TASK 7====")
-    print("{}% of passengers are children".format(percent_of_children))
+    print("{}% of passengers are children".format(percent_kids))
     children_survived_rate = len(children_df[(children_df['Survived'] == 1)].index) / len(children_df.index) * 100
     children_survived_rate = round(children_survived_rate, 2)
     adults_df = df[(df['Age'] >= 18)]
@@ -190,7 +189,6 @@ def do_task_7(df):
 
 def complete_df(df):
     total_rows = len(df.index)
-    #iau o lista cu toate coloanele cu valori nule
     incomplete_data = df.isnull().sum()
     incomplete_data = incomplete_data[incomplete_data > 0]
     for i in incomplete_data.index:
