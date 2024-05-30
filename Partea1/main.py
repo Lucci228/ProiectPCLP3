@@ -109,7 +109,6 @@ def do_task_4(df):
         print("({}% of the total data)".format(proportion))
     #df.isnull().anu(axis=1) returneaza o lista cu true in dreptul liniilor cu null/NaN values
     incomplete_data = df[df.isnull().any(axis=1)]
-    print(incomplete_data)
     total_survived = df['Survived'].value_counts()
     incomplete_data_survived = incomplete_data['Survived'].value_counts()
     incomplete_percentage = incomplete_data_survived / total_survived * 100
@@ -200,7 +199,6 @@ def complete_df(df):
         else:
             df[i] = df[i].fillna(df[i].mode()[0])
     df = replace_bracket(df)
-    return df
 
 
 def do_task_9(df):
@@ -240,9 +238,8 @@ def do_task_9(df):
 
 
 def investigate_alone_survival(df):
-    df['Alone'] = (df['SibSp'] == 0) & (df['Parch'] == 0)
-    not_alone = df[df['Alone'] == False]
-    alone = df[df['Alone'] == True]
+    alone = df[(df['SibSp'] == 0) & (df['Parch'] == 0)]
+    not_alone = df[(df['SibSp'] != 0) | (df['Parch'] != 0)]
     not_alone_survived = not_alone['Survived']
     alone_survived = alone['Survived']
     plt.hist([not_alone_survived, alone_survived], bins=2, color=['g', 'r'], label=['Not Alone', 'Alone'], edgecolor='black')
@@ -272,7 +269,7 @@ def main():
     do_task_5(df)
     do_task_6(df)
     do_task_7(df)
-    df = complete_df(df)
+    complete_df(df)
     df.to_csv('data2.csv', sep=',', index=False, encoding='utf-8')
     do_task_9(df)
     investigate_alone_survival(df)
